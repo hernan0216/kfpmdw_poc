@@ -1,46 +1,46 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
-from models import Component, Edge
+from component import Component
+from edge import Edge
+from dag import Dag
+import pdb
 
 app = FastAPI()
 
-
-@app.get("/components/structure")
-def read_structure():
-    """
-    Return the component structure.
-    TODO: return something like Component.__annotations__ in oder to load the strucrure from class.
-    """
-    return {"base_url": "string", "packages": "List[string]", "code": "string"}
+DEFAULT_DAG = Dag()
 
 
-@app.get("/components/{component_id}")
-def read_component(component_id: int, q: Optional[str] = None):
-    """
-    Read the component object value given an id.
-    """
-    return {"component_id": component_id, "q": q}
-
-
-@app.put("/components/{component_id}")
-def update_component(component_id: int, component: Component):
-    """
-    Update a component
-    """
-    return {"component_name": component.name, "component_id": component_id}
+@app.get("/components/schema")
+def read_shema():
+    """TODO: return something like Component.__annotations__."""
+    return {
+        "name": "string",
+        "description": "string",
+        "docker_image": "string",
+        "packages": ["string"],
+        "source": ["string"],
+    }
 
 
 @app.post("/components/")
 def create_component(component: Component):
-    """
-    Create a new component
-    """
+    """Create a new component."""
+    DEFAULT_DAG.components.append(component)
     return component
+
 
 @app.post("/edges/")
 def create_edge(edge: Edge):
-    """
-    Create and edge
-    """
+    """Create and edge."""
+    DEFAULT_DAG.edges.append(edge)
     return edge
+
+
+@app.get("/pipelines/deploy")
+def deploy_dag():
+    """Deploy dag as a kubeflow pipeline on kubernetes."""
+    try:
+        DEFAULT_DAG.compile()
+    except (NotImplementedError) as error:
+        return {"error": "NotImplentedError" + str(error)}
