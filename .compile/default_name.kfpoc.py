@@ -3,9 +3,6 @@ import json
 import kfp.dsl as _kfp_dsl
 import kfp.components as _kfp_components
 
-from collections import OrderedDict
-from kubernetes import client as k8s_client
-
 
 def func_1():
     import pandas
@@ -23,11 +20,11 @@ def func_2():
     print("World")
 
 
-func_1_op = _kfp_components.func_to_container_op(
+func_1_op = kfp.components.func_to_container_op(
     func_1, base_image='python:3.6')
 
 
-func_2_op = _kfp_components.func_to_container_op(
+func_2_op = kfp.components.func_to_container_op(
     func_2, base_image='python:3.6')
 
 

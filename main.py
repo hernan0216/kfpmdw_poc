@@ -8,6 +8,7 @@ import pdb
 
 app = FastAPI()
 
+"""TODO: implement multitenancy for Dags cration."""
 DEFAULT_DAG = Dag()
 
 
@@ -36,6 +37,9 @@ def create_edge(edge: Edge):
     DEFAULT_DAG.edges.append(edge)
     return edge
 
+@app.get("/pipelines")
+def read_dag():
+    return DEFAULT_DAG
 
 @app.get("/pipelines/deploy")
 def deploy_dag():

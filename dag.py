@@ -108,6 +108,7 @@ class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
         return output_path
 
     def pipeline_dependencies_tasks(self, Component):
+        # TODO: implemente dependency using nx.Digraph.
         return 'func_1' if Component.name == "func_2" else ""
 
 #    def _run_compiled_code(self, script_path: str):
