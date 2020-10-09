@@ -20,7 +20,7 @@ from jinja2 import Environment, PackageLoader, FileSystemLoader
 FN_TEMPLATE = "function_template.jinja2"
 PIPELINE_TEMPLATE = "pipeline_template.jinja2"
 
-class Dag(BaseModel):  # Pipeline kale model
+class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
     """DAG representing a kubeflow pipeline."""
 
     name: str = "default_name"
@@ -36,8 +36,6 @@ class Dag(BaseModel):  # Pipeline kale model
         # experiment = POST kubeflow.compile(kwf_sdk_template, namespace) -->> http://kubelow/pipelines
         raise NotImplementedError
 
-    def pipeline_dependencies_tasks(self):
-        return self.components[-1]
 
     def compile(self):
         """Convert Dag to KFP DSL.
@@ -108,6 +106,9 @@ class Dag(BaseModel):  # Pipeline kale model
         with open(output_path, "w") as f:
             f.write(dsl_source)
         return output_path
+
+    def pipeline_dependencies_tasks(self, Component):
+        return 'func_1' if Component.name == "func_2" else ""
 
 #    def _run_compiled_code(self, script_path: str):
 #        _name = self.pipeline.config.pipeline_name

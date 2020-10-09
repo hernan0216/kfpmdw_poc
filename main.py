@@ -17,7 +17,7 @@ def read_shema():
     return {
         "name": "string",
         "description": "string",
-        "docker_image": "string",
+        "base_image": "string",
         "packages": ["string"],
         "source": ["string"],
     }

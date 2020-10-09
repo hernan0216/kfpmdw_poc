@@ -3,38 +3,28 @@ import json
 import kfp.dsl as _kfp_dsl
 import kfp.components as _kfp_components
 
-from collections import OrderedDict
-from kubernetes import client as k8s_client
-
 {# PIPELINE LIGHTWEIGHT COMPONENTS #}
 {% for func in lightweight_components -%}
 {{func}}
 {% endfor -%}
 
 {# DEFINE PIPELINE TASKS FROM FUNCTIONS #}
-{%- for name in pipeline.steps_names -%}
+{%- for component in pipeline.components -%}
 {% if docker_image != '' %}
-{{ name }}_op = _kfp_components.func_to_container_op({{ name }}, base_image='{{ docker_image }}')
+{{ component.name }}_op = kfp.components.func_to_container_op({{ component.name }}, base_image='{{ component.base_image }}')
 {% else %}
-{{ name }}_op = _kfp_components.func_to_container_op({{ name }})
+{{ compoment.name }}_op = kfp.components.func_to_container_op({{ component.name }})
 {% endif %}
 {% endfor -%}
 
 {# DECLARE PIPELINE #}
 @_kfp_dsl.pipeline(
-   name='{{ pipeline_name }}',
-   description='{{ pipeline_description }}'
+   name='{{ pipeline.name }}',
+   description='{{ pipeline.description }}'
 )
     {% for step in pipeline.components %}
-    {{ step.name }}_task = _{{ step.name }}_op()\
-                                 .after({{ pipeline.pipeline_dependencies_tasks[ step.name ]|map('add_prefix', '_kale_')|map('add_suffix', '_task')|join(', ') }})
-    {%- if step.name != "final_auto_snapshot" and step.name != "pipeline_metrics" %}
-    _output_artifacts.update({'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'})
-    _output_artifacts.update({'{{ step.name }}': '/{{ step.name }}.html'})
-    {%- endif %}
-    _{{ step.name }}_task.output_artifact_paths.update(_kale_output_artifacts)
-    _{{ step.name }}_task.add_pod_label("pipelines.kubeflow.org/metadata_written", "true")
-    {%- endfor %}
+    {{ step.name }}_task = {{ step.name }}_op().after({{ pipeline.pipeline_dependencies_tasks(step) }})
+    {% endfor -%}
 
 {# The script will deploy the pipeline if run manually #}
 if __name__ == "__main__":
@@ -49,5 +39,5 @@ if __name__ == "__main__":
     experiment = client.create_experiment('{{ experiment_name }}')
 
     # Submit a pipeline run
-    run_name = generate_run_name('{{ pipeline_name }}')
+    run_name = generate_run_name('{{ pipeline.name }}')
     run_result = client.run_pipeline(experiment.id, run_name, pipeline_filename, {})
