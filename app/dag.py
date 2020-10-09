@@ -7,13 +7,11 @@ import os
 import pdb
 import re
 from typing import List, Union
-import secrets
-# from kale import Pipeline
 from pydantic import BaseModel
 from uuid import UUID
 import kfputils
-from component import Component
-from edge import Edge
+from app.component import Component
+from app.edge import Edge
 from jinja2 import Environment, PackageLoader, FileSystemLoader
 
 
@@ -56,7 +54,6 @@ class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
             self.generate_lightweight_component(step)
             for step in self.components
         ]
-        pdb.set_trace()
         pipeline_code = self.generate_pipeline(lightweight_components)
         return pipeline_code
 

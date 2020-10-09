@@ -1,0 +1,5 @@
+autopep8==1.4.4
+kfputils==0.2.1
+pydantic==1.6.1
+Jinja2==2.11.2
+fastapi==0.61.1

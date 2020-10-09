@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
-from component import Component
-from edge import Edge
-from dag import Dag
+from app.component import Component
+from app.edge import Edge
+from app.dag import Dag
 import pdb
 
 app = FastAPI()
