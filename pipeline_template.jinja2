@@ -22,8 +22,13 @@ import kfp.components as _kfp_components
    name='{{ pipeline.name }}',
    description='{{ pipeline.description }}'
 )
+def auto_generated_pipeline({%- for arg in pipeline.pps_names -%}
+    {{ arg }}='{{ (pipeline.pps_values)[loop.index-1] }}'
+    {%- if loop.index < pipeline.pps_values|length -%},
+    {%- endif -%}
+    {%- endfor -%}):
     {% for step in pipeline.components %}
-    {{ step.name }}_task = {{ step.name }}_op().after({{ pipeline.pipeline_dependencies_tasks(step) }})
+    {{ step.name }}_task = {{ step.name }}_op({{ pipeline.pipeline_dependencies_task(step) }}.output).after({{ pipeline.pipeline_dependencies_task(step) }})
     {% endfor -%}
 
 {# The script will deploy the pipeline if run manually #}
