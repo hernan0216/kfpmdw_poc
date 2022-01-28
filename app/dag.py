@@ -9,6 +9,7 @@ import re
 from typing import List, Union
 from pydantic import BaseModel
 from uuid import UUID
+import networkx as nx
 import kfputils
 from app.component import Component
 from app.edge import Edge
@@ -18,13 +19,18 @@ from jinja2 import Environment, PackageLoader, FileSystemLoader
 FN_TEMPLATE = "function_template.jinja2"
 PIPELINE_TEMPLATE = "pipeline_template.jinja2"
 
-class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
+class Dag(nx.DiGraph):  # maybe I should adopt Pipeline model from kale
     """DAG representing a kubeflow pipeline."""
 
-    name: str = "default_name"
     description: str = "default_description"
-    components: List[Component] = []
-    edges: List[Edge] = []
+    pipeline_parameters = dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def components(self):
+        pass
 
     @property
     def steps_names(self):
@@ -34,6 +40,24 @@ class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
         # experiment = POST kubeflow.compile(kwf_sdk_template, namespace) -->> http://kubelow/pipelines
         raise NotImplementedError
 
+    def add_component(self, component):
+        """Add a node on the DAG"""
+        self.add_node(component.id, component=component)
+
+    @property
+    def ps_names(self):
+        """Get the names of the pipeline parameters sorted."""
+        return sorted(self.pipeline_parameters.keys())
+
+    @property
+    def pps_values(self):
+        """Get the values of the pipeline parameters, sorted by name."""
+        return [self.pipeline_parameters[n].param_value
+                for n in self.pps_names]
+
+    def get_component(self, cmp_id):
+        """Return a component given an id."""
+        return self.nodes[int(cmp_id)]['component']
 
     def compile(self):
         """Convert Dag to KFP DSL.
@@ -104,9 +128,9 @@ class Dag(BaseModel):  # should adopt nx.Digraph or Pipeline kale model
             f.write(dsl_source)
         return output_path
 
-    def pipeline_dependencies_tasks(self, Component):
+    def pipeline_dependency_task(self, component):
         # TODO: implemente dependency using nx.Digraph.
-        return 'func_1' if Component.name == "func_2" else ""
+        self.in_edges(component)
 
 #    def _run_compiled_code(self, script_path: str):
 #        _name = self.pipeline.config.pipeline_name
